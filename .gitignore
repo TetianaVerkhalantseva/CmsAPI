@@ -1,0 +1,39 @@
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+
+# Rider-specific
+/.idea/
+.idea
+.idea/
+*.sln.iml
+.idea/workspace.xml
+.idea/vcs.xml
+
+# Build files
+bin/
+obj/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Logs
+*.log
+
+# IDE configuration files
+*.DotSettings.user
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# User-specific files
+launchSettings.json
+CmsAPI/Properties/launchSettings.json
+
+# Development-specific app settings
+appsettings.Development.json
+CmsAPI/appsettings.Development.json
