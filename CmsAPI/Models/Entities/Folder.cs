@@ -9,9 +9,11 @@ public class Folder
     [Required] [MaxLength(30)]
     public string FolderName { get; set; } = "Default";
     
-    public string? ParentFolderId { get; set; }
-    
     // Navigation properties
+    public string? ParentFolderId { get; set; }
+    public Folder ParentFolder {get; set; }
+    
+    [Required]
     public string UserId { get; set; }
     public User? User { get; set; }
 }
