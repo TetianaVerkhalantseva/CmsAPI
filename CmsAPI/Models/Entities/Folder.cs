@@ -10,8 +10,8 @@ public class Folder
     public string FolderName { get; set; } = "Default";
     
     // Navigation properties
-    public string? ParentFolderId { get; set; }
-    public Folder ParentFolder {get; set; }
+    public int? ParentFolderId { get; set; }
+    public Folder? ParentFolder {get; set; }
     
     [Required]
     public string UserId { get; set; }
