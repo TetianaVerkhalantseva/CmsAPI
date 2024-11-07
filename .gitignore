@@ -37,3 +37,6 @@ CmsAPI/Properties/launchSettings.json
 # Development-specific app settings
 appsettings.Development.json
 CmsAPI/appsettings.Development.json
+
+# Database
+CmsDb.db
