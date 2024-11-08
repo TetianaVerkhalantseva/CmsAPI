@@ -27,7 +27,7 @@ var app = builder.Build();
 // Ensure that the database has been created and data inserted (if required)
 await using var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateAsyncScope();
 var options = scope.ServiceProvider.GetRequiredService<DbContextOptions<CmsContext>>();
-await DatabaseUtility.EnsureDbCreatedAndSeedWithCountOfAsync(options, 20);
+await DatabaseUtility.EnsureDbCreatedAndSeedWithCountOfAsync(options, 10);
 
 
 // Configure the HTTP request pipeline.
