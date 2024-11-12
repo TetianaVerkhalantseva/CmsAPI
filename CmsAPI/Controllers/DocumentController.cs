@@ -16,19 +16,20 @@ public class LibraryController : ControllerBase
     }
     
     [HttpGet("{userId}")]
-    public IActionResult GetDocumentsByUserId([FromRoute] string userId)
+    public async Task<IActionResult> GetDocumentsByUserId([FromRoute] string userId)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        
-        var documents = _service.GetDocumentsByUserId(userId);
-        if (documents == null)
+
+        var documents = await _service.GetDocumentsByUserId(userId);
+        if (documents == null || !documents.Any())
         {
             return NotFound($"No document with user Id {userId} was found.");
         }
 
         return Ok(documents);
     }
+
 }
