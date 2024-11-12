@@ -30,13 +30,5 @@ obj/
 .DS_Store
 **/.DS_Store
 
-# User-specific files
-launchSettings.json
-CmsAPI/Properties/launchSettings.json
-
-# Development-specific app settings
-appsettings.Development.json
-CmsAPI/appsettings.Development.json
-
 # Database
 CmsDb.db
