@@ -4,10 +4,11 @@ namespace CmsAPI.Models.Entities;
 
 public class Folder
 {
-    public int FolderId { get; set; }
+    [Required]
+    public int FolderId { get; set; } 
 
     [Required] [MaxLength(30)]
-    public string FolderName { get; set; } = "Default";
+    public string FolderName { get; set; } = string.Empty;
     
     // Navigation properties
     public int? ParentFolderId { get; set; }
@@ -15,5 +16,9 @@ public class Folder
     
     [Required]
     public string UserId { get; set; }
-    public User? User { get; set; }
+    public User User { get; set; }
+    
+    public List<Folder> Folders { get; set; } = new List<Folder>();
+    public List<Document> Documents { get; set; } = new List<Document>();
+    
 }

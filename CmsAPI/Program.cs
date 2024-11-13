@@ -1,9 +1,13 @@
+using System.Text;
 using CmsAPI;
 using CmsAPI.Data;
 using CmsAPI.Models.Entities;
 using CmsAPI.Services;
+using CmsAPI.Services.AuthServices;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,12 +22,46 @@ builder.Services.AddDbContextFactory<CmsContext>(options =>
     options.UseSqlite($"Data Source={nameof(CmsContext.CmsDb)}.db"));
 
 // Configure Identity service
-builder.Services.AddIdentity<User, IdentityRole>()
+
+builder.Services.AddIdentity<User, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<CmsContext>()
     .AddDefaultTokenProviders();
 
+
+/*
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddEntityFrameworkStores<CmsContext>()
+    .AddDefaultTokenProviders();
+*/
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+
+        var byteKey = Encoding.UTF8.GetBytes(builder.Configuration.GetSection("Jwt:Key").Value);
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateActor = true,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            RequireExpirationTime = true,
+            ValidateIssuerSigningKey = true,                                            // In the file appsettings.json:
+            ValidIssuer = builder.Configuration.GetSection("Jwt:Issuer").Value,     // Change to the location of the server issuing the token
+            ValidAudience = builder.Configuration.GetSection("Jwt:Audience").Value, // Change to the location of the client
+            IssuerSigningKey = new SymmetricSecurityKey(byteKey)
+        };
+    });
+
 // Add transient services
 builder.Services.AddTransient<IDocumentService, DocumentService>();
+builder.Services.AddTransient<IAuthService, AuthService>();
 
 var app = builder.Build();
 

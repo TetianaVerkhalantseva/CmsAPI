@@ -1,4 +1,5 @@
 using CmsAPI.Models.Entities;
+using Microsoft.AspNetCore.Identity;
 using Document = CmsAPI.Models.Entities.Document;
 
 namespace CmsAPI.Data;
@@ -12,6 +13,7 @@ public class SeedCms
     private List<ContentType> _uniqueContentTypes;
 
     private readonly Random _random = new Random();
+    private readonly PasswordHasher<User> _hasher = new PasswordHasher<User>();
 
     private int _folderIdCounter = 1;
     private int _documentIdCounter = 1;
@@ -36,11 +38,15 @@ public class SeedCms
         
         return new User
         {
-            Id = id.ToString(),
+            Id = Guid.NewGuid().ToString(),
             UserName = userName,
+            NormalizedUserName = userName.ToUpper(),
             Email = email,
+            NormalizedEmail = email.ToUpper(),
             FirstName = RandomOne(_userFirstNames),
-            LastName = RandomOne(_userLastNames)
+            LastName = RandomOne(_userLastNames),
+            PasswordHash = _hasher.HashPassword(null, "UserPassword123!"),
+            SecurityStamp = string.Empty
         };
     }
 
