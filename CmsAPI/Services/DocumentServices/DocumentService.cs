@@ -1,23 +1,30 @@
 using CmsAPI.Data;
 using CmsAPI.Models;
+using CmsAPI.Services.AuthServices;
 using Microsoft.EntityFrameworkCore;
 
 namespace CmsAPI.Services.DocumentServices;
 
 public class DocumentService : IDocumentService
-{
+{   
+    private readonly CurrentUserContext _currentUser;
     private readonly CmsContext _db;
-    public DocumentService(CmsContext db)
+    
+    public DocumentService(CmsContext db,
+        CurrentUserContext currentUser)
     {
         _db = db;
+        _currentUser = currentUser;
     }
 
-    public async Task<IEnumerable<DocumentDto>> GetDocumentsByUserId(string userId)
+    public async Task<IEnumerable<DocumentDto>> GetDocumentsByUserId()
     {
+        Guid? ownerId = _currentUser.GetUserId();
+        
         try
         {
             var documents = await _db.Documents
-                .Where(document => document.UserId == userId)
+                .Where(document => document.UserId == ownerId.ToString())
                 .Include(d => d.ContentType) // Load ContentType
                 .Select(document => new DocumentDto
                 {

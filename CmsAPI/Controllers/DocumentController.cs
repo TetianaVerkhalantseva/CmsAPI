@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using CmsAPI.Services.DocumentServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,13 +19,7 @@ namespace CmsAPI.Controllers
         [HttpGet("user-documents")]
         public async Task<IActionResult> GetUserDocuments()
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("User is not authorized.");
-            }
-            
-            var documents = await _documentService.GetDocumentsByUserId(userId);
+            var documents = await _documentService.GetDocumentsByUserId();
 
             if (!documents.Any())
             {
