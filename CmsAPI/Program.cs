@@ -68,9 +68,10 @@ var app = builder.Build();
 // Ensure that the database has been created and data inserted (if required)
 await using var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateAsyncScope();
 var options = scope.ServiceProvider.GetRequiredService<DbContextOptions<CmsContext>>();
+var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>(); // Get UserManager<User>
 try
 {
-    await DatabaseUtility.EnsureDbCreatedAndSeedWithCountOfAsync(options, 10);
+    await DatabaseUtility.EnsureDbCreatedAndSeedWithCountOfAsync(options, userManager, 10); // Pass userManager and count
 }
 catch (Exception ex)
 {

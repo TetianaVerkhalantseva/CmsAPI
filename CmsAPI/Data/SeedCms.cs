@@ -1,6 +1,5 @@
 using CmsAPI.Models.Entities;
 using Microsoft.AspNetCore.Identity;
-using Document = CmsAPI.Models.Entities.Document;
 
 namespace CmsAPI.Data;
 
@@ -13,13 +12,14 @@ public class SeedCms
     private List<ContentType> _uniqueContentTypes;
 
     private readonly Random _random = new Random();
-    private readonly PasswordHasher<User> _hasher = new PasswordHasher<User>();
+    private readonly UserManager<User> _userManager;
 
     private int _folderIdCounter = 1;
     private int _documentIdCounter = 1;
 
-    public SeedCms()
+    public SeedCms(UserManager<User> userManager)
     {
+        _userManager = userManager;
         _uniqueContentTypes = Enumerable.Range(1, _contentTypes.Length)
             .Select(i => new ContentType { ContentTypeId = i, Type = _contentTypes[i - 1] })
             .ToList();
@@ -31,12 +31,11 @@ public class SeedCms
         return list[idx];
     }
 
-    private User MakeUser(int id)
+    private async Task<User> MakeUserAsync()
     {
         var userName = "user" + _random.Next(100, 9999);
         var email = userName + "@example.com";
-        
-        return new User
+        var user = new User
         {
             Id = Guid.NewGuid().ToString(),
             UserName = userName,
@@ -44,10 +43,17 @@ public class SeedCms
             Email = email,
             NormalizedEmail = email.ToUpper(),
             FirstName = RandomOne(_userFirstNames),
-            LastName = RandomOne(_userLastNames),
-            PasswordHash = _hasher.HashPassword(null, "UserPassword123!"),
-            SecurityStamp = string.Empty
+            LastName = RandomOne(_userLastNames)
         };
+
+        // Use UserManager to create a user
+        var result = await _userManager.CreateAsync(user, "UserPassword123!");
+        if (!result.Succeeded)
+        {
+            throw new Exception("Failed to create user");
+        }
+
+        return user;
     }
 
     private Folder MakeFolder(string userId, List<int> existingFolderIds)
@@ -105,16 +111,15 @@ public class SeedCms
 
         while (count < totalCount)
         {
-            var users = new List<User>();
             var folders = new List<Folder>();
             var documents = new List<Document>();
             var existingFolderIds = new List<int>();
 
             while (currentCycle++ < 100 && count++ < totalCount)
             {
-                var user = MakeUser(count);
-                users.Add(user);
+                var user = await MakeUserAsync(); // Create a user and save it in the database via UserManager
 
+                // Now create folders and documents for this user
                 for (int i = 0; i < 4; i++)
                 {
                     var folder = MakeFolder(user.Id, existingFolderIds);
@@ -126,7 +131,6 @@ public class SeedCms
                 }
             }
 
-            if (users.Count > 0) context.Users.AddRange(users);
             if (folders.Count > 0) context.Folders.AddRange(folders);
             if (documents.Count > 0) context.Documents.AddRange(documents);
 
