@@ -1,4 +1,4 @@
-using CmsAPI.Services;
+using CmsAPI.Services.DocumentServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CmsAPI.Controllers;
@@ -6,11 +6,11 @@ namespace CmsAPI.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 
-public class LibraryController : ControllerBase
+public class DocumentController : ControllerBase
 {
     private readonly IDocumentService _service;
 
-    public LibraryController(IDocumentService service)
+    public DocumentController(IDocumentService service)
     {
         _service = service;
     }

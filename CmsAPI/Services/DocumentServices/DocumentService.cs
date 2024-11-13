@@ -2,7 +2,7 @@ using CmsAPI.Data;
 using CmsAPI.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace CmsAPI.Services;
+namespace CmsAPI.Services.DocumentServices;
 
 public class DocumentService : IDocumentService
 {

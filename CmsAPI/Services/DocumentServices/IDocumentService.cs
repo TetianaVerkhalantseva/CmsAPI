@@ -1,6 +1,6 @@
 using CmsAPI.Models.Entities;
 
-namespace CmsAPI.Services;
+namespace CmsAPI.Services.DocumentServices;
 
 public interface IDocumentService
 {
