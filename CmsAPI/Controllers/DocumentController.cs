@@ -1,35 +1,32 @@
-using CmsAPI.Services;
+using CmsAPI.Services.DocumentServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CmsAPI.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-
-public class LibraryController : ControllerBase
+namespace CmsAPI.Controllers
 {
-    private readonly IDocumentService _service;
+    [ApiController]
+    [Route("api/[controller]")]
+    public class DocumentController : ControllerBase
+    {
+        private readonly IDocumentService _documentService;
 
-    public LibraryController(IDocumentService service)
-    {
-        _service = service;
-    }
-    
-    [HttpGet("{userId}")]
-    public async Task<IActionResult> GetDocumentsByUserId([FromRoute] string userId)
-    {
-        if (!ModelState.IsValid)
+        public DocumentController(IDocumentService documentService)
         {
-            return BadRequest(ModelState);
+            _documentService = documentService;
         }
 
-        var documents = await _service.GetDocumentsByUserId(userId);
-        if (documents == null || !documents.Any())
+        [Authorize]
+        [HttpGet("user-documents")]
+        public async Task<IActionResult> GetUserDocuments()
         {
-            return NotFound($"No document with user Id {userId} was found.");
+            var documents = await _documentService.GetDocumentsByUserId();
+
+            if (!documents.Any())
+            {
+                return NotFound("No documents found for the user.");
+            }
+
+            return Ok(documents);
         }
-
-        return Ok(documents);
     }
-
 }

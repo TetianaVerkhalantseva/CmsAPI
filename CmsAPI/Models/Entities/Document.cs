@@ -9,15 +9,19 @@ public class Document
     [Required]
     [StringLength(30)]
     public string Title { get; set; } = string.Empty;
-    
-    public string? Content { get; set; }
+    public string Content { get; set; } = string.Empty;
     
     public DateTime CreatedOn { get; set; } = DateTime.Now;
     
-    // Navigation properties
-    public string UserId { get; set; }
-    public User? User { get; set; }
-    
     public int ContentTypeId { get; set; }
     public ContentType? ContentType { get; set; }
+    
+    // Navigation properties
+    [Required]
+    public string UserId { get; set; } = string.Empty;
+    public User User { get; set; }
+    
+    [Required]
+    public string FolderId { get; set; } = string.Empty;
+    public Folder? Folder { get; set; }
 }

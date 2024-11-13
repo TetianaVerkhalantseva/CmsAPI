@@ -1,11 +1,12 @@
 using System.Diagnostics;
 using CmsAPI.Models.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CmsAPI.Data;
 
-public class CmsContext : IdentityDbContext<User>
+public sealed class CmsContext : IdentityDbContext<User, IdentityRole, string>
 {
     public static readonly string RowVersion = nameof(RowVersion);
     
