@@ -4,6 +4,7 @@ using CmsAPI.Data;
 using CmsAPI.Models.Entities;
 using CmsAPI.Services.AuthServices;
 using CmsAPI.Services.DocumentServices;
+using CmsAPI.Services.FolderServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,11 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add controller service to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -55,6 +60,8 @@ builder.Services.AddAuthentication(options =>
 // Add transient services
 builder.Services.AddTransient<IDocumentService, DocumentService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
+builder.Services.AddTransient<IFolderService, FolderService>();
+builder.Services.AddScoped<CurrentUserContext>();
 
 var app = builder.Build();
 
