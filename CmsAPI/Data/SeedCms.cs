@@ -9,7 +9,7 @@ public class SeedCms
     private readonly string[] _folderNames = { "Test folder 1", "Test folder 2", "Test folder 3", "Secret folder 1", "Secret folder 2", "Secret folder 3" };
     private readonly string[] _userFirstNames = { "Adam", "Bob", "Charles", "Dave", "Davis", "Emily" };
     private readonly string[] _userLastNames = { "Ericsson", "Johnson", "James", "Jones", "Mayer", "Mary" };
-    private List<ContentType> _uniqueContentTypes;
+    private readonly List<ContentType> _uniqueContentTypes;
 
     private readonly Random _random = new Random();
     private readonly UserManager<User> _userManager;
@@ -46,7 +46,6 @@ public class SeedCms
             LastName = RandomOne(_userLastNames)
         };
 
-        // Use UserManager to create a user
         var result = await _userManager.CreateAsync(user, "UserPassword123!");
         if (!result.Succeeded)
         {
@@ -56,34 +55,29 @@ public class SeedCms
         return user;
     }
 
-    private Folder MakeFolder(string userId, List<int> existingFolderIds)
+    private Folder MakeFolder(string userId, List<int> existingFolderIds, List<Folder> userFolders, bool hasParent = false)
     {
         int folderId = _folderIdCounter++;
-        int? parentFolderId = null;
+        Folder? parentFolder = hasParent && userFolders.Any() ? userFolders[_random.Next(userFolders.Count)] : null;
 
-        if (existingFolderIds.Any())
-        {
-            do
-            {
-                parentFolderId = existingFolderIds[_random.Next(existingFolderIds.Count)];
-            } while (parentFolderId == folderId);
-        }
-
-        existingFolderIds.Add(folderId);
-
-        return new Folder
+        var newFolder = new Folder
         {
             FolderId = folderId,
             FolderName = RandomOne(_folderNames),
-            ParentFolderId = parentFolderId,
-            UserId = userId
+            ParentFolderId = parentFolder?.FolderId,
+            ParentFolder = parentFolder,
+            UserId = userId,
+            User = parentFolder?.User
         };
+
+        parentFolder?.Folders.Add(newFolder);
+        existingFolderIds.Add(folderId);
+        return newFolder;
     }
 
-    private Document MakeDocument(string userId, int contentTypeId)
+    private Document MakeDocument(string userId, int contentTypeId, Folder? folder = null)
     {
         int documentId = _documentIdCounter++;
-
         return new Document
         {
             DocumentId = documentId,
@@ -94,7 +88,9 @@ public class SeedCms
                 .AddMinutes(_random.Next(0, 60))
                 .AddSeconds(_random.Next(0, 60)),
             UserId = userId,
-            ContentTypeId = contentTypeId
+            ContentTypeId = contentTypeId,
+            FolderId = folder?.FolderId.ToString() ?? string.Empty,
+            Folder = folder
         };
     }
 
@@ -111,27 +107,35 @@ public class SeedCms
 
         while (count < totalCount)
         {
-            var folders = new List<Folder>();
             var documents = new List<Document>();
-            var existingFolderIds = new List<int>();
 
             while (currentCycle++ < 100 && count++ < totalCount)
             {
-                var user = await MakeUserAsync(); // Create a user and save it in the database via UserManager
+                var user = await MakeUserAsync();
+                var userFolders = new List<Folder>();
+                var existingFolderIds = new List<int>();
 
-                // Now create folders and documents for this user
-                for (int i = 0; i < 4; i++)
+                // Create one folder without parent and three folders with parent for user
+                var rootFolder = MakeFolder(user.Id, existingFolderIds, userFolders, false);
+                userFolders.Add(rootFolder);
+
+                for (int i = 0; i < 3; i++)
                 {
-                    var folder = MakeFolder(user.Id, existingFolderIds);
-                    folders.Add(folder);
-
-                    var randomContentType = _uniqueContentTypes[_random.Next(_uniqueContentTypes.Count)];
-                    var document = MakeDocument(user.Id, randomContentType.ContentTypeId);
-                    documents.Add(document);
+                    var childFolder = MakeFolder(user.Id, existingFolderIds, userFolders, true);
+                    userFolders.Add(childFolder);
                 }
+
+                var randomContentType = _uniqueContentTypes[_random.Next(_uniqueContentTypes.Count)];
+
+                // Create documents
+                documents.Add(MakeDocument(user.Id, randomContentType.ContentTypeId)); // No folder
+                documents.Add(MakeDocument(user.Id, randomContentType.ContentTypeId, rootFolder)); // In the root folder
+                documents.Add(MakeDocument(user.Id, randomContentType.ContentTypeId, userFolders[1])); // In the child folder
+                documents.Add(MakeDocument(user.Id, randomContentType.ContentTypeId, userFolders[2])); // In another child folder
+
+                if (userFolders.Count > 0) context.Folders.AddRange(userFolders);
             }
 
-            if (folders.Count > 0) context.Folders.AddRange(folders);
             if (documents.Count > 0) context.Documents.AddRange(documents);
 
             await context.SaveChangesAsync();
