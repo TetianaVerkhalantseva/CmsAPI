@@ -46,7 +46,7 @@ namespace CmsAPI.Controllers
         public async Task<IActionResult> CreateDocument([FromBody] EditDocumentDto dDto)
         {
             var document = await _documentService.GetDocumentByTitle(dDto.Title);
-            if (document == null)
+            if (document != null)
             {
                 return Conflict($"There is already a document with the title {dDto.Title}.");
             }
@@ -70,6 +70,24 @@ namespace CmsAPI.Controllers
             }
             
             return Ok(result);
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteDocument([FromRoute] int id)
+        {
+            var folder = await _documentService.GetDocumentById(id);
+            if (folder == null)
+            {
+                return NotFound($"No document found for the document Id {id}.");
+            }
+            
+            var result = await _documentService.DeleteDocument(id);
+            if (result is false)
+            {
+                return BadRequest($"Either the id {id} does not exist or you do not have permission to delete the document.");
+            }
+
+            return NoContent();
         }
     }
 }

@@ -14,4 +14,6 @@ public interface IDocumentService
     Task<Document> CreateDocument(EditDocumentDto eDto);
 
     Task<Document> UpdateDocument(EditDocumentDto eDto, int documentId);
+    
+    Task<bool> DeleteDocument(int documentId);
 }

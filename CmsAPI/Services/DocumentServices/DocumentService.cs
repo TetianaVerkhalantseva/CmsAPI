@@ -152,4 +152,18 @@ public class DocumentService : IDocumentService
 
         return document;
     }
+
+    public async Task<bool> DeleteDocument(int documentId)
+    {
+        Guid? ownerId = _currentUser.GetUserId();
+
+        var document = await _db.Documents.FindAsync(documentId);
+        if (document is not null || ownerId.ToString() == document.UserId)
+        {
+            _db.Remove(document);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+        return false;
+    }
 }
