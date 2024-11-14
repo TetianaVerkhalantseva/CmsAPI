@@ -1,3 +1,4 @@
+using CmsAPI.Models;
 using CmsAPI.Services.DocumentServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +28,48 @@ namespace CmsAPI.Controllers
             }
 
             return Ok(documents);
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetDocumentById([FromRoute] int id)
+        {
+            var document = await _documentService.GetDocumentById(id);
+            if (document == null)
+            {
+                return NotFound($"No document found for the document Id {id}.");
+            }
+            
+            return Ok(document);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateDocument([FromBody] EditDocumentDto dDto)
+        {
+            var document = await _documentService.GetDocumentByTitle(dDto.Title);
+            if (document == null)
+            {
+                return Conflict($"There is already a document with the title {dDto.Title}.");
+            }
+            
+            var result = await _documentService.CreateDocument(dDto);
+            if (result is null)
+            {
+                return NotFound("Something went wrong...");
+            }
+            
+            return Ok(result);
+        }
+        
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateDocument([FromRoute] int id, [FromBody] EditDocumentDto eDto)
+        {
+            var result = await _documentService.UpdateDocument(eDto, id);
+            if (result is null)
+            {
+                return NotFound("Something went wrong...");
+            }
+            
+            return Ok(result);
         }
     }
 }
