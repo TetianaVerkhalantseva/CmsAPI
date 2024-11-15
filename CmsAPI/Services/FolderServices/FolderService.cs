@@ -47,10 +47,20 @@ public class FolderService : IFolderService
     public async Task<FolderDto?> GetFolderById(int id)
     {
         Guid? ownerId = _currentUser.GetUserId();
+        if (ownerId == null)
+        {
+            return null;
+        }
         
         var folder = await _db.Folders
             .Include(f => f.Folders)
+                .ThenInclude(sf => sf.User) // Подгружает User для подкаталогов
             .Include(f => f.Documents)
+                .ThenInclude(d => d.ContentType) // Подгружает ContentType для документов
+            .Include(f => f.Documents)
+                .ThenInclude(d => d.User) // Подгружает User для документов
+            .Include(f => f.ParentFolder)
+            .Include(f => f.User)
             .FirstOrDefaultAsync(f => f.FolderId == id);
 
         if (folder is null)
@@ -68,11 +78,17 @@ public class FolderService : IFolderService
             FolderId = folder.FolderId,
             FolderName = folder.FolderName,
             ParentFolderId = folder.ParentFolderId,
+            ParentFolderName = folder.ParentFolder?.FolderName,
+            UserId = folder.UserId,
+            UserName = folder.User?.UserName, 
             SubFolders = folder.Folders.Select(sf => new FolderDto()
             {
                 FolderId = sf.FolderId,
                 FolderName = sf.FolderName,
+                ParentFolderId = sf.ParentFolderId,
+                ParentFolderName = sf.ParentFolder?.FolderName,
                 UserId = sf.UserId,
+                UserName = sf.User?.UserName
             }).ToList(),
             Documents = folder.Documents.Select(d => new DocumentDto
             {
@@ -80,7 +96,12 @@ public class FolderService : IFolderService
                 Title = d.Title,
                 Content = d.Content,
                 CreatedOn = d.CreatedOn,
-                ContentTypeId = d.ContentTypeId
+                ContentTypeId = d.ContentTypeId,
+                ContentType = d.ContentType?.Type,
+                UserId = d.UserId,
+                UserName = d.User?.UserName, 
+                FolderId = d.FolderId,
+                FolderName = folder.FolderName
             }).ToList()
         };
     }
