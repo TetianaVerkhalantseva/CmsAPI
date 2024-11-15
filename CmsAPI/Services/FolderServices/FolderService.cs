@@ -88,23 +88,34 @@ public class FolderService : IFolderService
     public async Task<Folder?> CreateFolder(CreateFolderDto dto)
     {
         Guid? ownerId = _currentUser.GetUserId();
-        
-        Folder? parentFolder = await _db.Folders.FirstOrDefaultAsync(f => f.FolderId == dto.ParentFolderId);
-        if (parentFolder is not null && parentFolder.UserId != ownerId.ToString())
+        if (ownerId == null)
         {
-            return null;
+            return null; // User not authenticated
         }
 
-        if (parentFolder is null)
+        Folder? parentFolder = null;
+    
+        // Check if ParentFolderId is provided and validate it
+        if (dto.ParentFolderId.HasValue)
         {
-            return null;
-        }
+            parentFolder = await _db.Folders.FirstOrDefaultAsync(f => f.FolderId == dto.ParentFolderId.Value);
         
+            if (parentFolder == null)
+            {
+                return null; // Parent folder doesn't exist
+            }
+
+            if (parentFolder.UserId != ownerId.ToString())
+            {
+                return null; // Parent folder belongs to another user
+            }
+        }
+
         Folder dbRecord = new Folder()
         {
             FolderName = dto.FolderName,
-            ParentFolderId = dto.ParentFolderId,
-            UserId = ownerId!.ToString()
+            ParentFolderId = parentFolder?.FolderId, // Assign parent folder ID or null
+            UserId = ownerId.ToString()
         };
 
         try
@@ -115,9 +126,9 @@ public class FolderService : IFolderService
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return null;
+            return null; // Error occurred
         }
-        
+
         return dbRecord;
     }
 

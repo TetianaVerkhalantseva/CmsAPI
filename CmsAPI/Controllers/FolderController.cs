@@ -46,8 +46,19 @@ namespace CmsAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateFolder([FromBody] CreateFolderDto dto)
         {
-            Folder? result = await _folderService.CreateFolder(dto);
-            return result is null ? BadRequest() : Ok(result);
+            if (string.IsNullOrWhiteSpace(dto.FolderName))
+            {
+                return BadRequest("Folder name is required.");
+            }
+
+            var result = await _folderService.CreateFolder(dto);
+
+            if (result == null)
+            {
+                return BadRequest("Unable to create folder. Check parent folder or user permissions.");
+            }
+
+            return CreatedAtAction(nameof(GetFolderById), new { id = result.FolderId }, result);
         }
 
         [HttpPut("{id:int}")]
