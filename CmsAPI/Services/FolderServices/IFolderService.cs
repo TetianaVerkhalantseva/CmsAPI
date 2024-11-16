@@ -9,5 +9,5 @@ public interface IFolderService
     Task<FolderDto?> GetFolderById(int id);
     Task<FolderUpdateResult> CreateFolder(CreateFolderDto dto);
     Task<FolderUpdateResult> UpdateFolder(UpdateFolderDto dto, int id);
-    Task<FolderUpdateResult> DeleteFolder(int id);
+    Task<bool> DeleteFolder(int id);
 }

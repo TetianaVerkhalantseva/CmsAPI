@@ -205,7 +205,7 @@ public class FolderService : IFolderService
             return new FolderUpdateResult
             {
                 IsSuccess = false,
-                ErrorMessage = "Folder not found.",
+                ErrorMessage = $"Folder with Id {id} not found.",
                 ProblematicFolderId = id
             };
         }
@@ -226,7 +226,7 @@ public class FolderService : IFolderService
                 return new FolderUpdateResult
                 {
                     IsSuccess = false,
-                    ErrorMessage = "Parent folder not found.",
+                    ErrorMessage = $"Parent folder with Id {id} not found.", 
                     ProblematicFolderId = dto.ParentFolderId
                 };
             }
@@ -265,45 +265,21 @@ public class FolderService : IFolderService
         };
     }
 
-    public async Task<FolderUpdateResult> DeleteFolder(int id)
-    {
+    public async Task<bool> DeleteFolder(int id)
+    {   
         Guid? ownerId = _currentUser.GetUserId();
-
         var folder = await _db.Folders.FindAsync(id);
-        if (folder == null)
+        if (folder is not null && folder.UserId != ownerId.ToString())
         {
-            return new FolderUpdateResult
-            {
-                IsSuccess = false,
-                ErrorMessage = "Folder not found.",
-                ProblematicFolderId = id
-            };
+            return false;
         }
-
-        if (folder.UserId != ownerId.ToString())
-        {
-            throw new ForbiddenAccessException("Failed to delete folder: User does not have permission to delete this folder.");
-        }
-
-        try
+        
+        if (folder != null)
         {
             _db.Folders.Remove(folder);
             await _db.SaveChangesAsync();
-
-            return new FolderUpdateResult
-            {
-                IsSuccess = true
-            };
+            return true;
         }
-        catch (Exception e)
-        {
-            Console.WriteLine($"Failed to delete folder: {e.Message}");
-            return new FolderUpdateResult
-            {
-                IsSuccess = false,
-                ErrorMessage = "An error occurred while deleting the folder.",
-                ProblematicFolderId = id
-            };
-        }
+        return false;
     }
 }

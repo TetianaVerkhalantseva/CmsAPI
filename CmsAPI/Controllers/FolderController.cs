@@ -107,31 +107,19 @@ namespace CmsAPI.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteFolder(int id)
         {
-            try
+            var folder = await _folderService.GetFolderById(id);
+            if (folder == null)
             {
-                var result = await _folderService.DeleteFolder(id);
-                if (result.IsSuccess)
-                {
-                    return Ok(new { Message = "Folder successfully deleted." });
-                }
-
-                if (!string.IsNullOrEmpty(result.ErrorMessage) && result.ErrorMessage.Contains("permission"))
-                {
-                    return Forbid(result.ErrorMessage);
-                }
-
-                return NotFound(result.ErrorMessage ?? $"Folder with Id {id} not found.");
-
+                return NotFound($"Folder with Id {id} not found.");
             }
-            catch (ForbiddenAccessException ex)
+
+            bool result = await _folderService.DeleteFolder(id);
+            if (result)
             {
-                return Forbid(ex.Message);
+                return Ok(new { Message = "Folder successfully deleted." }); // 200 OK with a success message
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Unexpected error: {ex.Message}");
-                return StatusCode(500, "An unexpected error occurred while deleting the folder.");
-            }
+
+            return BadRequest("An error occurred while deleting the folder."); // 400 Bad Request for failure
         }
     }
 }
