@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +55,23 @@ builder.Services.AddAuthentication(options =>
             ValidIssuer = builder.Configuration.GetSection("Jwt:Issuer").Value,     // Change to the location of the server issuing the token
             ValidAudience = builder.Configuration.GetSection("Jwt:Audience").Value, // Change to the location of the client
             IssuerSigningKey = new SymmetricSecurityKey(byteKey)
+        };
+        
+        // Add a custom message for unauthorized users
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                // Disable the automatic response to send a custom one
+                context.HandleResponse();
+
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json";
+                return context.Response.WriteAsync(JsonConvert.SerializeObject(new
+                {
+                    message = "Authorization required. Please log in to access this resource."
+                }));
+            }
         };
     });
 
