@@ -19,9 +19,9 @@ public sealed class CmsContext : IdentityDbContext<User, IdentityRole, string>
     }
     
     // No need to define User table
-    public DbSet<Document> Documents { get; set; }
-    public DbSet<Folder> Folders { get; set; }
-    public DbSet<ContentType> ContentTypes { get; set; }
+    public DbSet<Document> Documents { get; set; } = null!;
+    public DbSet<Folder> Folders { get; set; } = null!;
+    public DbSet<ContentType> ContentTypes { get; set; } = null!;
     
     // modelBuilder and configure RowVersion
     protected override void OnModelCreating(ModelBuilder builder)
