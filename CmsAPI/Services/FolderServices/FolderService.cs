@@ -71,10 +71,6 @@ public class FolderService : IFolderService
     public async Task<FolderDto?> GetFolderById(int id)
     {
         Guid? ownerId = _currentUser.GetUserId();
-        if (ownerId == null)
-        {
-            throw new ForbiddenAccessException("You do not have permission to access this folder.");
-        }
         
         var folder = await _db.Folders
             .Include(f => f.Folders)
@@ -87,14 +83,9 @@ public class FolderService : IFolderService
             .Include(f => f.User)
             .FirstOrDefaultAsync(f => f.FolderId == id);
 
-        if (folder is null)
+        if (folder == null || folder.UserId != ownerId.ToString())
         {
             return null;
-        }
-        
-        if (folder.UserId != ownerId.ToString())
-        {
-            throw new ForbiddenAccessException("You do not have permission to access this folder.");
         }
         
         return new FolderDto
@@ -269,6 +260,7 @@ public class FolderService : IFolderService
     {   
         Guid? ownerId = _currentUser.GetUserId();
         var folder = await _db.Folders.FindAsync(id);
+        
         if (folder is not null && folder.UserId != ownerId.ToString())
         {
             return false;

@@ -34,24 +34,12 @@ namespace CmsAPI.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetFolderById(int id)
         {
-            try
+            var folder = await _folderService.GetFolderById(id);
+            if (folder == null)
             {
-                var folder = await _folderService.GetFolderById(id);
-                if (folder == null)
-                {
-                    return NotFound($"Folder with Id {id} not found.");
-                }
-                return Ok(folder);
+                return NotFound($"Folder with Id {id} not found.");
             }
-            catch (ForbiddenAccessException ex)
-            {
-                return Forbid(ex.Message); // 403 Forbidden
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Unexpected error: {ex.Message}");
-                return StatusCode(500, "An unexpected error occurred.");
-            }
+            return Ok(folder);
         }
         
         [HttpPost]
