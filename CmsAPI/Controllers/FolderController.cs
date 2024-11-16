@@ -1,11 +1,12 @@
 using CmsAPI.Models;
-using CmsAPI.Models.Entities;
+using CmsAPI.Models.Exceptions;
 using CmsAPI.Services.FolderServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CmsAPI.Controllers
-{
+{   
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class FolderController : ControllerBase
@@ -16,8 +17,7 @@ namespace CmsAPI.Controllers
         {
             _folderService = folderService;
         }
-
-        [Authorize]
+        
         [HttpGet("user-folders")]
         public async Task<IActionResult> GetUserFolders()
         {
@@ -34,51 +34,104 @@ namespace CmsAPI.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetFolderById(int id)
         {
-            var folder = await _folderService.GetFolderById(id);
-            if (folder == null)
+            try
             {
-                return NotFound($"Folder with Id {id} not found.");
+                var folder = await _folderService.GetFolderById(id);
+                if (folder == null)
+                {
+                    return NotFound($"Folder with Id {id} not found.");
+                }
+                return Ok(folder);
             }
-
-            return Ok(folder);
+            catch (ForbiddenAccessException ex)
+            {
+                return Forbid(ex.Message); // 403 Forbidden
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error: {ex.Message}");
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
-
+        
         [HttpPost]
         public async Task<IActionResult> CreateFolder([FromBody] CreateFolderDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.FolderName))
+            try
             {
-                return BadRequest("Folder name is required.");
+                var result = await _folderService.CreateFolder(dto);
+
+                if (result.IsSuccess)
+                {
+                    return CreatedAtAction(nameof(GetFolderById), new { id = result.UpdatedFolder?.FolderId }, result.UpdatedFolder);
+                }
+
+                if (!string.IsNullOrEmpty(result.ErrorMessage) && result.ErrorMessage.Contains("permission"))
+                {
+                    return Forbid(result.ErrorMessage);
+                }
+
+                return BadRequest(result.ErrorMessage ?? "An unexpected error occurred.");
             }
-
-            var result = await _folderService.CreateFolder(dto);
-
-            if (result == null)
+            catch (ForbiddenAccessException ex)
             {
-                return BadRequest("Unable to create folder. Check parent folder or user permissions.");
+                return Forbid(ex.Message);
             }
-
-            return CreatedAtAction(nameof(GetFolderById), new { id = result.FolderId }, result);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error: {ex.Message}");
+                return StatusCode(500, "An unexpected error occurred while creating the folder.");
+            }
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateFolder([FromRoute] int id, [FromBody] UpdateFolderDto folderDto)
+        public async Task<IActionResult> UpdateFolder([FromRoute] int id, [FromBody] UpdateFolderDto dto)
         {
-            Folder? result = await _folderService.UpdateFolder(folderDto, id);
-            return result is null ? BadRequest() : Ok(result);
+            try
+            {
+                var result = await _folderService.UpdateFolder(dto, id);
+
+                if (!result.IsSuccess)
+                {
+                    return BadRequest(result.ErrorMessage);
+                }
+
+                return Ok(result.UpdatedFolder);
+            }
+            catch (ForbiddenAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
         }
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteFolder(int id)
         {
-            var folder = await _folderService.GetFolderById(id);
-            if (folder == null)
+            try
             {
-                return NotFound($"Folder with Id {id} not found.");
-            }
+                var result = await _folderService.DeleteFolder(id);
+                if (result.IsSuccess)
+                {
+                    return Ok(new { Message = "Folder successfully deleted." });
+                }
 
-            bool result = await _folderService.DeleteFolder(id);
-            return result ? NoContent() : BadRequest();
+                if (!string.IsNullOrEmpty(result.ErrorMessage) && result.ErrorMessage.Contains("permission"))
+                {
+                    return Forbid(result.ErrorMessage);
+                }
+
+                return NotFound(result.ErrorMessage ?? $"Folder with Id {id} not found.");
+
+            }
+            catch (ForbiddenAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error: {ex.Message}");
+                return StatusCode(500, "An unexpected error occurred while deleting the folder.");
+            }
         }
     }
 }

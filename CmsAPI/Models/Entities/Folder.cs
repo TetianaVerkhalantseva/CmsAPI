@@ -15,8 +15,9 @@ public class Folder
     public Folder? ParentFolder {get; set; }
     
     [Required]
+    [StringLength(40)]
     public string UserId { get; set; } = string.Empty;
-    public User User { get; set; }
+    public User? User { get; set; }
     
     // Nested folders and documents as lists of IDs or summary details
     public List<Folder> Folders { get; set; } = new List<Folder>(); // Summary details for child folders

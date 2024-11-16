@@ -7,7 +7,7 @@ public interface IFolderService
 {
     Task<List<FolderDto>> GetFoldersByUserId();
     Task<FolderDto?> GetFolderById(int id);
-    Task<Folder> CreateFolder(CreateFolderDto dto);
-    Task<Folder> UpdateFolder(UpdateFolderDto dto, int id);
-    Task<bool> DeleteFolder(int id);
+    Task<FolderUpdateResult> CreateFolder(CreateFolderDto dto);
+    Task<FolderUpdateResult> UpdateFolder(UpdateFolderDto dto, int id);
+    Task<FolderUpdateResult> DeleteFolder(int id);
 }
