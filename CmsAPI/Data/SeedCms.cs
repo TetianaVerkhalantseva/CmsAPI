@@ -7,8 +7,6 @@ public class SeedCms
 {
     private readonly string[] _contentTypes = { "Text", "Image", "Video", "Audio", "Link", "Contact" };
     private readonly string[] _folderNames = { "Test folder 1", "Test folder 2", "Test folder 3", "Secret folder 1", "Secret folder 2", "Secret folder 3" };
-    private readonly string[] _userFirstNames = { "Adam", "Bob", "Charles", "Dave", "Davis", "Emily" };
-    private readonly string[] _userLastNames = { "Ericsson", "Johnson", "James", "Jones", "Mayer", "Mary" };
     private readonly List<ContentType> _uniqueContentTypes;
 
     private readonly Random _random = new Random();
@@ -41,9 +39,7 @@ public class SeedCms
             UserName = userName,
             NormalizedUserName = userName.ToUpper(),
             Email = email,
-            NormalizedEmail = email.ToUpper(),
-            FirstName = RandomOne(_userFirstNames),
-            LastName = RandomOne(_userLastNames)
+            NormalizedEmail = email.ToUpper()
         };
 
         var result = await _userManager.CreateAsync(user, "UserPassword123!");
