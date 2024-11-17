@@ -33,6 +33,11 @@ namespace CmsAPI.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetDocumentById([FromRoute] int id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
             var document = await _documentService.GetDocumentById(id);
             if (document == null)
             {
@@ -45,6 +50,11 @@ namespace CmsAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateDocument([FromBody] EditDocumentDto dDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
             var document = await _documentService.GetDocumentByTitle(dDto.Title);
             if (document != null)
             {
@@ -54,22 +64,33 @@ namespace CmsAPI.Controllers
             var result = await _documentService.CreateDocument(dDto);
             if (result is null)
             {
-                return NotFound("Something went wrong...");
+                return BadRequest("Something went wrong...");
             }
             
-            return Ok(result);
+            return CreatedAtAction("GetDocumentById", new { id = result.DocumentId }, result);
         }
         
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateDocument([FromRoute] int id, [FromBody] EditDocumentDto eDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
+            var existingDocument = await _documentService.GetDocumentById(id);
+            if (existingDocument == null)
+            {
+                return NotFound($"No document found for the document Id {id}.");
+            }
+            
             var result = await _documentService.UpdateDocument(eDto, id);
             if (result is null)
             {
-                return NotFound("Something went wrong...");
+                return BadRequest("Something went wrong...");
             }
             
-            return Ok(result);
+            return Ok(new { message = $"Document with id {result.DocumentId} updated successfully", Document = result });
         }
 
         [HttpDelete("{id:int}")]
@@ -84,7 +105,7 @@ namespace CmsAPI.Controllers
             var result = await _documentService.DeleteDocument(id);
             if (result is false)
             {
-                return BadRequest($"Either the id {id} does not exist or you do not have permission to delete the document.");
+                return BadRequest($"Either the file with id {id} does not exist or you do not have permission to delete the document.");
             }
 
             return NoContent();
