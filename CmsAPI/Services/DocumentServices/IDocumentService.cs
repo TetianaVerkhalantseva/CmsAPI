@@ -9,11 +9,11 @@ public interface IDocumentService
     
     Task<DocumentDto?> GetDocumentById(int documentId);
 
-    Task<Document> GetDocumentByTitle(string title);
+    Task<Document?> GetDocumentByTitle(string title);
     
-    Task<Document> CreateDocument(EditDocumentDto eDto);
+    Task<Document?> CreateDocument(EditDocumentDto eDto);
 
-    Task<Document> UpdateDocument(EditDocumentDto eDto, int documentId);
+    Task<Document?> UpdateDocument(EditDocumentDto eDto, int documentId);
     
     Task<bool> DeleteDocument(int documentId);
 }

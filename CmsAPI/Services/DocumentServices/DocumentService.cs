@@ -76,13 +76,13 @@ public class DocumentService : IDocumentService
             Content = document.Content,
             CreatedOn = document.CreatedOn,
             ContentTypeId = document.ContentTypeId,
-            ContentType = document.ContentType != null ? document.ContentType.Type : null, // Secure Access
+            ContentType = document.ContentType?.Type,
             UserId = document.UserId,
             FolderId = document.FolderId
         };
     }
 
-    public async Task<Document> GetDocumentByTitle(string title)
+    public async Task<Document?> GetDocumentByTitle(string title)
     {
         Guid? ownerId = _currentUser.GetUserId();
 
@@ -90,19 +90,25 @@ public class DocumentService : IDocumentService
             .Where(document => document.Title == title)
             .FirstOrDefaultAsync();
 
-        return document is not null ? document : null;
+        return document;
     }
     
-    public async Task<Document> CreateDocument(EditDocumentDto eDto)
+    public async Task<Document?> CreateDocument(EditDocumentDto eDto)
     {
-        Guid? ownerId = _currentUser.GetUserId();
+        Guid? ownerIdNullable = _currentUser.GetUserId();
+        if (ownerIdNullable == null)
+        {
+            throw new InvalidOperationException("User is not authorized.");
+        }
+        
+        Guid ownerId = ownerIdNullable.Value;
 
         var document = new Document
         {
             Title = eDto.Title,
             Content = eDto.Content,
             ContentTypeId = eDto.ContentTypeId,
-            UserId = ownerId!.ToString(),
+            UserId = ownerId.ToString(),
             FolderId = eDto.FolderId != "" ? eDto.FolderId : null
         };
         
@@ -114,13 +120,13 @@ public class DocumentService : IDocumentService
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return null;
+            return new Document();
         }
         
         return document;
     }
 
-    public async Task<Document> UpdateDocument(EditDocumentDto eDto, int documentId)
+    public async Task<Document?> UpdateDocument(EditDocumentDto eDto, int documentId)
     {
         Guid? ownerId = _currentUser.GetUserId();
         
@@ -131,7 +137,7 @@ public class DocumentService : IDocumentService
 
         if (document is null)
         {
-            return new Document();
+            return null;
         }
         
         document.Title = eDto.Title;
@@ -147,7 +153,7 @@ public class DocumentService : IDocumentService
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return new Document();
+            return null;
         }
 
         return document;
@@ -158,7 +164,7 @@ public class DocumentService : IDocumentService
         Guid? ownerId = _currentUser.GetUserId();
 
         var document = await _db.Documents.FindAsync(documentId);
-        if (document is not null || ownerId.ToString() == document.UserId)
+        if (document != null && ownerId != null && ownerId.ToString() == document.UserId)
         {
             _db.Remove(document);
             await _db.SaveChangesAsync();

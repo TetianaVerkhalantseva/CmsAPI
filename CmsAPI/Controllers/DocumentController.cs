@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CmsAPI.Controllers
-{
+{   
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class DocumentController : ControllerBase
@@ -15,8 +16,7 @@ namespace CmsAPI.Controllers
         {
             _documentService = documentService;
         }
-
-        [Authorize]
+        
         [HttpGet("user-documents")]
         public async Task<IActionResult> GetUserDocuments()
         {

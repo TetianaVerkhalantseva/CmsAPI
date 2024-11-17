@@ -12,6 +12,6 @@ public class DocumentDto
     public string? ContentType { get; set; } // Content type name can be passed to simplify
     public string UserId { get; set; } = string.Empty;
     public string? UserName { get; set; }
-    public string FolderId { get; set; } = string.Empty;
+    public string? FolderId { get; set; }
     public string? FolderName { get; set; }
 }
