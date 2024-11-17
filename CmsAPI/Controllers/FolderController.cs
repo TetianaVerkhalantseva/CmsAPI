@@ -1,11 +1,11 @@
 using CmsAPI.Models;
-using CmsAPI.Models.Entities;
 using CmsAPI.Services.FolderServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CmsAPI.Controllers
-{
+{   
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class FolderController : ControllerBase
@@ -16,8 +16,7 @@ namespace CmsAPI.Controllers
         {
             _folderService = folderService;
         }
-
-        [Authorize]
+        
         [HttpGet("user-folders")]
         public async Task<IActionResult> GetUserFolders()
         {
@@ -39,22 +38,53 @@ namespace CmsAPI.Controllers
             {
                 return NotFound($"Folder with Id {id} not found.");
             }
-
             return Ok(folder);
         }
-
+        
         [HttpPost]
-        public async Task<IActionResult> CreateFolder([FromBody] CreateFolderDto dto)
-        {
-            Folder? result = await _folderService.CreateFolder(dto);
-            return result is null ? BadRequest() : Ok(result);
+        public async Task<IActionResult> CreateFolder([FromBody] FolderInputDto dto)
+        {   
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
+            var result = await _folderService.CreateFolder(dto);
+            
+            if (result.IsSuccess)
+            {
+                return CreatedAtAction(nameof(GetFolderById), new { id = result.UpdatedFolder?.FolderId }, result.UpdatedFolder);
+            }
+            
+            if (!string.IsNullOrEmpty(result.ErrorMessage) && result.ErrorMessage == "Parent folder not found.")
+            {
+                return NotFound(new { Message = "Parent folder not found.", ParentFolderId = result.ProblematicFolderId });
+            }
+            
+            return BadRequest(result.ErrorMessage ?? "An unexpected error occurred.");
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateFolder([FromRoute] int id, [FromBody] UpdateFolderDto folderDto)
+        public async Task<IActionResult> UpdateFolder([FromRoute] int id, [FromBody] FolderInputDto dto)
         {
-            Folder? result = await _folderService.UpdateFolder(folderDto, id);
-            return result is null ? BadRequest() : Ok(result);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _folderService.UpdateFolder(dto, id);
+            
+            if (result.IsSuccess)
+            {
+                return Ok(new { Message = "Folder updated successfully.", result.UpdatedFolder });
+            }
+
+            if (!string.IsNullOrEmpty(result.ErrorMessage) && result.ErrorMessage.Contains("not found", StringComparison.OrdinalIgnoreCase))
+            {
+                return NotFound(result.ErrorMessage);
+            }
+
+            return BadRequest(result.ErrorMessage ?? "An unexpected error occurred while updating the folder.");
         }
 
         [HttpDelete("{id:int}")]
@@ -67,7 +97,12 @@ namespace CmsAPI.Controllers
             }
 
             bool result = await _folderService.DeleteFolder(id);
-            return result ? NoContent() : BadRequest();
+            if (result)
+            {
+                return Ok(new { Message = "Folder successfully deleted." }); 
+            }
+
+            return BadRequest("An error occurred while deleting the folder.");
         }
     }
 }

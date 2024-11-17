@@ -9,6 +9,7 @@ public class Document
     [Required]
     [StringLength(30)]
     public string Title { get; set; } = string.Empty;
+    [StringLength(100)]
     public string Content { get; set; } = string.Empty;
     
     public DateTime CreatedOn { get; set; } = DateTime.Now;
@@ -18,10 +19,12 @@ public class Document
     
     // Navigation properties
     [Required]
+    [StringLength(40)]
     public string UserId { get; set; } = string.Empty;
-    public User User { get; set; }
+    public User? User { get; set; }
     
     [Required]
+    [StringLength(5)]
     public string FolderId { get; set; } = string.Empty;
     public Folder? Folder { get; set; }
 }
