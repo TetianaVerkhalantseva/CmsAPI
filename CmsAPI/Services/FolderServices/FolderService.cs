@@ -1,7 +1,6 @@
 using CmsAPI.Data;
 using CmsAPI.Models;
 using CmsAPI.Models.Entities;
-using CmsAPI.Models.Exceptions;
 using CmsAPI.Services.AuthServices;
 using Microsoft.EntityFrameworkCore;
 
@@ -121,12 +120,16 @@ public class FolderService : IFolderService
         };
     }
 
-    public async Task<FolderUpdateResult> CreateFolder(CreateFolderDto dto)
+    public async Task<FolderUpdateResult> CreateFolder(FolderInputDto dto)
     {
         Guid? ownerIdNullable = _currentUser.GetUserId();
         if (ownerIdNullable == null)
         {
-            throw new ForbiddenAccessException("Failed to create folder: User is not authorized.");
+            return new FolderUpdateResult
+            {
+                IsSuccess = false,
+                ErrorMessage = "User is not authorized."
+            };
         }
         Guid ownerId = ownerIdNullable.Value;
         
@@ -136,19 +139,13 @@ public class FolderService : IFolderService
         {
             parentFolder = await _db.Folders.FirstOrDefaultAsync(f => f.FolderId == dto.ParentFolderId.Value);
 
-            if (parentFolder == null)
+            if (parentFolder == null || parentFolder.UserId != ownerId.ToString())
             {
                 return new FolderUpdateResult
                 {
                     IsSuccess = false,
-                    ErrorMessage = "Parent folder not found.",
-                    ProblematicFolderId = dto.ParentFolderId
+                    ErrorMessage = $"Parent folder with Id {dto.ParentFolderId.Value} not found."
                 };
-            }
-
-            if (parentFolder.UserId != ownerId.ToString())
-            {
-                throw new ForbiddenAccessException("Failed to create folder: User does not have permission to add a subfolder to the specified parent folder.");
             }
         }
 
@@ -181,7 +178,7 @@ public class FolderService : IFolderService
         }
     }
 
-    public async Task<FolderUpdateResult> UpdateFolder(UpdateFolderDto dto, int id)
+    public async Task<FolderUpdateResult> UpdateFolder(FolderInputDto dto, int id)
     {
         Guid? ownerId = _currentUser.GetUserId();
 
@@ -191,19 +188,13 @@ public class FolderService : IFolderService
             .Include(folder => folder.ParentFolder)
             .FirstOrDefaultAsync(f => f.FolderId == id);
 
-        if (dbRecord == null)
+        if (dbRecord == null || dbRecord.UserId != ownerId.ToString())
         {
             return new FolderUpdateResult
             {
                 IsSuccess = false,
-                ErrorMessage = $"Folder with Id {id} not found.",
-                ProblematicFolderId = id
+                ErrorMessage = $"Folder with Id {id} not found."
             };
-        }
-
-        if (dbRecord.UserId != ownerId.ToString())
-        {
-            throw new ForbiddenAccessException("You do not have permission to update this folder.");
         }
 
         dbRecord.FolderName = dto.FolderName;
@@ -212,19 +203,13 @@ public class FolderService : IFolderService
         {
             Folder? newParentFolder = await _db.Folders.FirstOrDefaultAsync(f => f.FolderId == dto.ParentFolderId.Value);
 
-            if (newParentFolder == null)
+            if (newParentFolder == null || newParentFolder.UserId != ownerId.ToString())
             {
                 return new FolderUpdateResult
                 {
                     IsSuccess = false,
-                    ErrorMessage = $"Parent folder with Id {id} not found.", 
-                    ProblematicFolderId = dto.ParentFolderId
+                    ErrorMessage = $"Parent folder with Id {dto.ParentFolderId.Value} not found."
                 };
-            }
-
-            if (newParentFolder.UserId != ownerId.ToString())
-            {
-                throw new ForbiddenAccessException("You do not have permission to set this folder as a parentFolder.");
             }
 
             dbRecord.ParentFolderId = newParentFolder.FolderId;
@@ -239,8 +224,9 @@ public class FolderService : IFolderService
             _db.Folders.Update(dbRecord);
             await _db.SaveChangesAsync();
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            Console.WriteLine ($"Failed to update folder: {e.Message}");
             return new FolderUpdateResult
             {
                 IsSuccess = false,

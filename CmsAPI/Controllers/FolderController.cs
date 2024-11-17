@@ -1,5 +1,4 @@
 using CmsAPI.Models;
-using CmsAPI.Models.Exceptions;
 using CmsAPI.Services.FolderServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -43,53 +42,49 @@ namespace CmsAPI.Controllers
         }
         
         [HttpPost]
-        public async Task<IActionResult> CreateFolder([FromBody] CreateFolderDto dto)
-        {
-            try
+        public async Task<IActionResult> CreateFolder([FromBody] FolderInputDto dto)
+        {   
+            if (!ModelState.IsValid)
             {
-                var result = await _folderService.CreateFolder(dto);
-
-                if (result.IsSuccess)
-                {
-                    return CreatedAtAction(nameof(GetFolderById), new { id = result.UpdatedFolder?.FolderId }, result.UpdatedFolder);
-                }
-
-                if (!string.IsNullOrEmpty(result.ErrorMessage) && result.ErrorMessage.Contains("permission"))
-                {
-                    return Forbid(result.ErrorMessage);
-                }
-
-                return BadRequest(result.ErrorMessage ?? "An unexpected error occurred.");
+                return BadRequest(ModelState);
             }
-            catch (ForbiddenAccessException ex)
+            
+            var result = await _folderService.CreateFolder(dto);
+            
+            if (result.IsSuccess)
             {
-                return Forbid(ex.Message);
+                return CreatedAtAction(nameof(GetFolderById), new { id = result.UpdatedFolder?.FolderId }, result.UpdatedFolder);
             }
-            catch (Exception ex)
+            
+            if (!string.IsNullOrEmpty(result.ErrorMessage) && result.ErrorMessage == "Parent folder not found.")
             {
-                Console.WriteLine($"Unexpected error: {ex.Message}");
-                return StatusCode(500, "An unexpected error occurred while creating the folder.");
+                return NotFound(new { Message = "Parent folder not found.", ParentFolderId = result.ProblematicFolderId });
             }
+            
+            return BadRequest(result.ErrorMessage ?? "An unexpected error occurred.");
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateFolder([FromRoute] int id, [FromBody] UpdateFolderDto dto)
+        public async Task<IActionResult> UpdateFolder([FromRoute] int id, [FromBody] FolderInputDto dto)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                var result = await _folderService.UpdateFolder(dto, id);
-
-                if (!result.IsSuccess)
-                {
-                    return BadRequest(result.ErrorMessage);
-                }
-
-                return Ok(result.UpdatedFolder);
+                return BadRequest(ModelState);
             }
-            catch (ForbiddenAccessException ex)
+
+            var result = await _folderService.UpdateFolder(dto, id);
+            
+            if (result.IsSuccess)
             {
-                return Forbid(ex.Message);
+                return Ok(new { Message = "Folder updated successfully.", result.UpdatedFolder });
             }
+
+            if (!string.IsNullOrEmpty(result.ErrorMessage) && result.ErrorMessage.Contains("not found", StringComparison.OrdinalIgnoreCase))
+            {
+                return NotFound(result.ErrorMessage);
+            }
+
+            return BadRequest(result.ErrorMessage ?? "An unexpected error occurred while updating the folder.");
         }
 
         [HttpDelete("{id:int}")]
@@ -104,10 +99,10 @@ namespace CmsAPI.Controllers
             bool result = await _folderService.DeleteFolder(id);
             if (result)
             {
-                return Ok(new { Message = "Folder successfully deleted." }); // 200 OK with a success message
+                return Ok(new { Message = "Folder successfully deleted." }); 
             }
 
-            return BadRequest("An error occurred while deleting the folder."); // 400 Bad Request for failure
+            return BadRequest("An error occurred while deleting the folder.");
         }
     }
 }
