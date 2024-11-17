@@ -67,7 +67,7 @@ namespace CmsAPI.Controllers
                 return BadRequest("Something went wrong...");
             }
             
-            return Ok(result);
+            return CreatedAtAction("GetDocumentById", new { id = result.DocumentId }, result);
         }
         
         [HttpPut("{id:int}")]
@@ -87,10 +87,10 @@ namespace CmsAPI.Controllers
             var result = await _documentService.UpdateDocument(eDto, id);
             if (result is null)
             {
-                return NotFound("Something went wrong...");
+                return BadRequest("Something went wrong...");
             }
             
-            return Ok(result);
+            return Ok(new { message = $"Document with id {result.DocumentId} updated successfully", Document = result });
         }
 
         [HttpDelete("{id:int}")]
