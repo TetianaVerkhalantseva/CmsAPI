@@ -260,4 +260,25 @@ public class FolderService : IFolderService
         }
         return false;
     }
+
+    public async Task<RootFolderModel> GetRootFolder()
+    {
+        Guid? ownerId = _currentUser.GetUserId();
+
+        List<Folder> folderRecords = await _db.Folders
+            .Where(folder => folder.UserId == ownerId.ToString() &&
+                             !folder.ParentFolderId.HasValue)
+            .ToListAsync();
+        
+        List<Document> documentRecords = await _db.Documents
+            .Where(document => document.UserId == ownerId.ToString() &&
+                               string.IsNullOrEmpty(document.FolderId))
+            .ToListAsync();
+
+        return new RootFolderModel()
+        {
+            Files = documentRecords,
+            Folders = folderRecords
+        };
+    }
 }

@@ -104,5 +104,12 @@ namespace CmsAPI.Controllers
 
             return BadRequest("An error occurred while deleting the folder.");
         }
+
+        [HttpGet("root")]
+        public async Task<IActionResult> GetRootFolder()
+        {
+            RootFolderModel model = await _folderService.GetRootFolder();
+            return Ok(model);
+        }
     }
 }
