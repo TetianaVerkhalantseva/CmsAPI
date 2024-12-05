@@ -78,6 +78,12 @@ namespace CmsAPI.Controllers
                 return BadRequest(ModelState);
             }
             
+            var document = await _documentService.GetDocumentByTitle(eDto.Title);
+            if (document != null)
+            {
+                return Conflict($"There is already a document with the title {eDto.Title}.");
+            }
+            
             var existingDocument = await _documentService.GetDocumentById(id);
             if (existingDocument == null)
             {
