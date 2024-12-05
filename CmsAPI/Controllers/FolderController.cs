@@ -2,6 +2,7 @@ using CmsAPI.Models;
 using CmsAPI.Services.FolderServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace CmsAPI.Controllers
 {   
@@ -30,15 +31,18 @@ namespace CmsAPI.Controllers
             return Ok(folders);
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetFolderById(int id)
+        [HttpGet("{id:int?}")]
+        public async Task<IActionResult> GetFolderById(int? id)
         {
             var folder = await _folderService.GetFolderById(id);
             if (folder == null)
             {
                 return NotFound($"Folder with Id {id} not found.");
             }
-            return Ok(folder);
+            return Ok(JsonConvert.SerializeObject(folder, new JsonSerializerSettings()
+            {
+                ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            }));
         }
         
         [HttpPost]

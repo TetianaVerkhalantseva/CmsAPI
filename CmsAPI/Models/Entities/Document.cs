@@ -23,7 +23,7 @@ public class Document
     public string UserId { get; set; } = string.Empty;
     public User? User { get; set; }
     
-    [Required]
+    
     [StringLength(5)]
     public string? FolderId { get; set; } = string.Empty;
     public Folder? Folder { get; set; }

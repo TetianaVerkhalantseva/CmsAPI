@@ -8,5 +8,5 @@ public class EditDocumentDto
 
     public int ContentTypeId { get; set; }
 
-    public string? FolderId { get; set; }
+    public int? FolderId { get; set; }
 }

@@ -105,11 +105,12 @@ public class DocumentService : IDocumentService
 
         var document = new Document
         {
+            
             Title = eDto.Title,
             Content = eDto.Content,
             ContentTypeId = eDto.ContentTypeId,
             UserId = ownerId.ToString(),
-            FolderId = eDto.FolderId != "" ? eDto.FolderId : null
+            FolderId = eDto.FolderId is not null ? eDto.FolderId.ToString() : null
         };
         
         try
@@ -143,7 +144,7 @@ public class DocumentService : IDocumentService
         document.Title = eDto.Title;
         document.Content = eDto.Content;
         document.ContentTypeId = eDto.ContentTypeId;
-        document.FolderId = eDto.FolderId != "" ? eDto.FolderId : null;
+        document.FolderId = eDto.FolderId is not null ? eDto.FolderId.ToString() : null;
         
         try
         {

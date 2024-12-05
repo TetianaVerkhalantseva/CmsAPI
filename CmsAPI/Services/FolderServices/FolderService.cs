@@ -67,20 +67,69 @@ public class FolderService : IFolderService
         }).ToList();
     }
 
-    public async Task<FolderDto?> GetFolderById(int id)
+    public async Task<FolderDto?> GetFolderById(int? id)
     {
         Guid? ownerId = _currentUser.GetUserId();
+        Folder? folder = null;
         
-        var folder = await _db.Folders
-            .Include(f => f.Folders)
+        if (id is null)
+        {
+            folder = new Folder()
+            {
+                Folders = await _db.Folders
+                    .Where(folder => folder.UserId == ownerId.ToString() &&
+                            !folder.ParentFolderId.HasValue)
+                    .ToListAsync(),
+                
+                Documents = await _db.Documents
+                    .Include(document => document.ContentType)
+                    .Where(document => document.UserId == ownerId.ToString() &&
+                            string.IsNullOrEmpty(document.FolderId))
+                    .ToListAsync()
+            };
+
+            return new FolderDto()
+            {
+                UserId = folder.UserId,
+                UserName = folder.User?.UserName,
+                SubFolders = folder.Folders.Select(sf => new FolderDto()
+                {
+                    FolderId = sf.FolderId,
+                    FolderName = sf.FolderName,
+                    ParentFolderId = sf.ParentFolderId,
+                    ParentFolderName = sf.ParentFolder?.FolderName,
+                    UserId = sf.UserId,
+                    UserName = sf.User?.UserName
+                }).ToList(),
+                Documents = folder.Documents.Select(d => new DocumentDto
+                {
+                    DocumentId = d.DocumentId,
+                    Title = d.Title,
+                    Content = d.Content,
+                    CreatedOn = d.CreatedOn,
+                    ContentTypeId = d.ContentTypeId,
+                    ContentType = d.ContentType?.Type,
+                    UserId = d.UserId,
+                    UserName = d.User?.UserName,
+                    FolderId = d.FolderId,
+                    FolderName = folder.FolderName
+                }).ToList()
+            };
+        }
+        else
+        {
+            folder = await _db.Folders
+                .Include(f => f.Folders)
                 .ThenInclude(sf => sf.User)
-            .Include(f => f.Documents)
+                .Include(f => f.Documents)
                 .ThenInclude(d => d.ContentType)
-            .Include(f => f.Documents)
+                .Include(f => f.Documents)
                 .ThenInclude(d => d.User)
-            .Include(f => f.ParentFolder)
-            .Include(f => f.User)
-            .FirstOrDefaultAsync(f => f.FolderId == id);
+                .Include(f => f.ParentFolder)
+                .Include(f => f.User)
+                .FirstOrDefaultAsync(f => f.FolderId == id);
+        }
+        
 
         if (folder == null || folder.UserId != ownerId.ToString())
         {
@@ -271,6 +320,7 @@ public class FolderService : IFolderService
             .ToListAsync();
         
         List<Document> documentRecords = await _db.Documents
+            .Include(document => document.ContentType)
             .Where(document => document.UserId == ownerId.ToString() &&
                                string.IsNullOrEmpty(document.FolderId))
             .ToListAsync();
