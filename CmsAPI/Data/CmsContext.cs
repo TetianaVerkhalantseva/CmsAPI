@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using CmsAPI.Configurations;
 using CmsAPI.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -39,6 +40,8 @@ public sealed class CmsContext : IdentityDbContext<User, IdentityRole, string>
             .IsRowVersion();
         
         base.OnModelCreating(builder);
+
+        builder.ApplyConfiguration(new FolderConfiguration());
     }
 
     // Dispose pattern

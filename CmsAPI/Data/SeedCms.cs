@@ -5,7 +5,7 @@ namespace CmsAPI.Data;
 
 public class SeedCms
 {
-    private readonly string[] _contentTypes = { "Text", "Image", "Video", "Audio", "Link", "Contact" };
+    private readonly string[] _contentTypes = { "Word", "Image", "Video", "PDF", "Audio", "Link", "Contact", "Text"};
     private readonly string[] _folderNames = { "Test folder 1", "Test folder 2", "Test folder 3", "Secret folder 1", "Secret folder 2", "Secret folder 3" };
     private readonly List<ContentType> _uniqueContentTypes;
 
