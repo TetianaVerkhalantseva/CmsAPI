@@ -84,7 +84,7 @@ public class FolderService : IFolderService
                 Documents = await _db.Documents
                     .Include(document => document.ContentType)
                     .Where(document => document.UserId == ownerId.ToString() &&
-                            string.IsNullOrEmpty(document.FolderId))
+                                       !document.FolderId.HasValue)
                     .ToListAsync()
             };
 
@@ -322,7 +322,7 @@ public class FolderService : IFolderService
         List<Document> documentRecords = await _db.Documents
             .Include(document => document.ContentType)
             .Where(document => document.UserId == ownerId.ToString() &&
-                               string.IsNullOrEmpty(document.FolderId))
+                               !document.FolderId.HasValue)
             .ToListAsync();
 
         return new RootFolderModel()

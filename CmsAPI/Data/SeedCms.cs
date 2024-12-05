@@ -85,7 +85,7 @@ public class SeedCms
                 .AddSeconds(_random.Next(0, 60)),
             UserId = userId,
             ContentTypeId = contentTypeId,
-            FolderId = folder?.FolderId.ToString() ?? string.Empty,
+            FolderId = folder?.FolderId,
             Folder = folder
         };
     }

@@ -25,6 +25,6 @@ public class Document
     
     
     [StringLength(5)]
-    public string? FolderId { get; set; } = string.Empty;
+    public int? FolderId { get; set; }
     public Folder? Folder { get; set; }
 }

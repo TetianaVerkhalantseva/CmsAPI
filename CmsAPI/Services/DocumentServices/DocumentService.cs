@@ -84,7 +84,6 @@ public class DocumentService : IDocumentService
 
     public async Task<Document?> GetDocumentByTitle(string title)
     {
-        Guid? ownerId = _currentUser.GetUserId();
 
         var document = await _db.Documents
             .Where(document => document.Title == title)
@@ -110,7 +109,7 @@ public class DocumentService : IDocumentService
             Content = eDto.Content,
             ContentTypeId = eDto.ContentTypeId,
             UserId = ownerId.ToString(),
-            FolderId = eDto.FolderId is not null ? eDto.FolderId.ToString() : null
+            FolderId = eDto.FolderId
         };
         
         try
@@ -144,7 +143,7 @@ public class DocumentService : IDocumentService
         document.Title = eDto.Title;
         document.Content = eDto.Content;
         document.ContentTypeId = eDto.ContentTypeId;
-        document.FolderId = eDto.FolderId is not null ? eDto.FolderId.ToString() : null;
+        document.FolderId = eDto.FolderId;
         
         try
         {
