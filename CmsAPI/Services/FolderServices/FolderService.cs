@@ -169,6 +169,15 @@ public class FolderService : IFolderService
         };
     }
 
+    public async Task<Folder?> GetFolderByFolderName(string folderName)
+    {
+        var folder = await _db.Folders
+            .Where(folder => folder.FolderName == folderName)
+            .FirstOrDefaultAsync();
+
+        return folder;
+    }
+
     public async Task<FolderUpdateResult> CreateFolder(FolderInputDto dto)
     {
         Guid? ownerIdNullable = _currentUser.GetUserId();

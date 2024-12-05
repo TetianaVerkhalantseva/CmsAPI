@@ -53,6 +53,12 @@ namespace CmsAPI.Controllers
                 return BadRequest(ModelState);
             }
             
+            var folder = await _folderService.GetFolderByFolderName(dto.FolderName);
+            if (folder != null)
+            {
+                return Conflict($"There is already a folder with the name {dto.FolderName}.");
+            }
+            
             var result = await _folderService.CreateFolder(dto);
             
             if (result.IsSuccess)
@@ -74,6 +80,12 @@ namespace CmsAPI.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+            
+            var folder = await _folderService.GetFolderByFolderName(dto.FolderName);
+            if (folder != null)
+            {
+                return Conflict($"There is already a folder with the name {dto.FolderName}.");
             }
 
             var result = await _folderService.UpdateFolder(dto, id);
