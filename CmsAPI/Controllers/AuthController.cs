@@ -31,7 +31,7 @@ public class AuthController : ControllerBase
 
         if (await _authService.RegisterUser(user))
         {
-            return Ok(new
+            return Ok(new AuthResponseDto
             {
                 IsSuccess = true,
                 Message = "User successfully registered!"
@@ -60,7 +60,7 @@ public class AuthController : ControllerBase
             return BadRequest("Something went wrong when logging in...");
         }
 
-        return Ok(new
+        return Ok(new AuthResponseDto
         {
             IsSuccess = true,
             Token = _authService.GenerateTokenString(identityUser),

@@ -33,11 +33,6 @@ namespace CmsAPI.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetDocumentById([FromRoute] int id)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            
             var document = await _documentService.GetDocumentById(id);
             if (document == null)
             {
