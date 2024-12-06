@@ -68,7 +68,7 @@ namespace CmsAPI.Controllers
             
             if (!string.IsNullOrEmpty(result.ErrorMessage) && result.ErrorMessage == "Parent folder not found.")
             {
-                return NotFound(new { Message = "Parent folder not found.", ParentFolderId = result.ProblematicFolderId });
+                return NotFound("Parent folder not found.");
             }
             
             return BadRequest(result.ErrorMessage ?? "An unexpected error occurred.");
@@ -81,18 +81,12 @@ namespace CmsAPI.Controllers
             {
                 return BadRequest(ModelState);
             }
-            
-            var folder = await _folderService.GetFolderByFolderName(dto.FolderName);
-            if (folder != null)
-            {
-                return Conflict($"There is already a folder with the name {dto.FolderName}.");
-            }
 
             var result = await _folderService.UpdateFolder(dto, id);
             
             if (result.IsSuccess)
             {
-                return Ok(new { Message = "Folder updated successfully.", result.UpdatedFolder });
+                return Ok("Folder updated successfully.");
             }
 
             if (!string.IsNullOrEmpty(result.ErrorMessage) && result.ErrorMessage.Contains("not found", StringComparison.OrdinalIgnoreCase))
@@ -115,7 +109,7 @@ namespace CmsAPI.Controllers
             bool result = await _folderService.DeleteFolder(id);
             if (result)
             {
-                return Ok(new { Message = "Folder successfully deleted." }); 
+                return Ok("Folder successfully deleted."); 
             }
 
             return BadRequest("An error occurred while deleting the folder.");

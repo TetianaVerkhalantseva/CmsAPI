@@ -79,7 +79,7 @@ namespace CmsAPI.Controllers
             }
             
             var document = await _documentService.GetDocumentByTitle(eDto.Title);
-            if (document != null)
+            if (document != null && document.DocumentId != id)
             {
                 return Conflict($"There is already a document with the title {eDto.Title}.");
             }
@@ -96,7 +96,7 @@ namespace CmsAPI.Controllers
                 return BadRequest("Something went wrong...");
             }
             
-            return Ok(new { message = $"Document with id {result.DocumentId} updated successfully", Document = result });
+            return Ok($"Document with id {result.DocumentId} updated successfully");
         }
 
         [HttpDelete("{id:int}")]

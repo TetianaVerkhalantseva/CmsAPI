@@ -131,9 +131,8 @@ public class DocumentService : IDocumentService
         Guid? ownerId = _currentUser.GetUserId();
         
         var document = await _db.Documents
-            .Where(document => document.UserId == ownerId.ToString())
-            .Include(document => document.ContentType)
-            .FirstOrDefaultAsync(d => d.DocumentId == documentId);
+            .FirstOrDefaultAsync(d => d.DocumentId == documentId && 
+                                      d.UserId == ownerId.ToString());
 
         if (document is null)
         {
@@ -143,7 +142,7 @@ public class DocumentService : IDocumentService
         document.Title = eDto.Title;
         document.Content = eDto.Content;
         document.ContentTypeId = eDto.ContentTypeId;
-        document.FolderId = eDto.FolderId;
+        document.FolderId = eDto.FolderId == 0 ? null : eDto.FolderId;
         
         try
         {
