@@ -78,7 +78,7 @@ public class SeedCms
         {
             DocumentId = documentId,
             Title = $"Document {documentId}",
-            Content = $"Content for document {documentId}",
+            Content = "https://uit.no/startsida",
             CreatedOn = DateTime.Now.AddDays(-_random.Next(0, 365))
                 .AddHours(_random.Next(0, 24))
                 .AddMinutes(_random.Next(0, 60))
