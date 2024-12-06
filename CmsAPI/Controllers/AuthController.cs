@@ -44,15 +44,15 @@ public class AuthController : ControllerBase
     [HttpPost("Login")]
     public async Task<IActionResult> Login(LoginDto user)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest("Invalid ModelState...");
+        }
+        
         var identityUser = await _userManager.FindByNameAsync(user.Username);
         if (identityUser == null)
         {
             return BadRequest("User does not exist...");
-        }
-
-        if (!ModelState.IsValid)
-        {
-            return BadRequest("Invalid ModelState...");
         }
         
         if (!await _authService.Login(user)) 
