@@ -3,6 +3,7 @@ using CmsAPI;
 using CmsAPI.Data;
 using CmsAPI.Models.Entities;
 using CmsAPI.Services.AuthServices;
+using CmsAPI.Services.ContentTypeServices;
 using CmsAPI.Services.DocumentServices;
 using CmsAPI.Services.FolderServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -80,6 +81,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddTransient<IDocumentService, DocumentService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 builder.Services.AddTransient<IFolderService, FolderService>();
+builder.Services.AddTransient<IContentTypeService, ContentTypeService>();
 builder.Services.AddScoped<CurrentUserContext>();
 
 var app = builder.Build();
