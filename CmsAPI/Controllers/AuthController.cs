@@ -26,11 +26,7 @@ public class AuthController : ControllerBase
         var identityUser = await _userManager.FindByNameAsync(user.Username);
         if (identityUser != null)
         {
-            return Conflict(new
-            {
-                IsSuccess = false,
-                Message = "User already exists. Please log in instead."
-            });
+            return Conflict("User already exists. Please log in instead.");
         }
 
         if (await _authService.RegisterUser(user))
@@ -42,11 +38,7 @@ public class AuthController : ControllerBase
             });
         }
 
-        return BadRequest(new
-        {
-            IsSuccess = false,
-            Message = "Something went wrong..."
-        });
+        return BadRequest("Something went wrong...");
     }
 
     [HttpPost("Login")]
@@ -55,29 +47,17 @@ public class AuthController : ControllerBase
         var identityUser = await _userManager.FindByNameAsync(user.Username);
         if (identityUser == null)
         {
-            return BadRequest(new
-            {
-                IsSuccess = false,
-                Message = "User does not exist..."
-            });
+            return BadRequest("User does not exist...");
         }
 
         if (!ModelState.IsValid)
         {
-            return BadRequest(new
-            {
-                IsSuccess = false,
-                Message = "Invalid ModelState..."
-            });
+            return BadRequest("Invalid ModelState...");
         }
         
         if (!await _authService.Login(user)) 
         {
-            return BadRequest(new
-            {
-                IsSuccess = false,
-                Message = "Something went wrong when logging in..."
-            });
+            return BadRequest("Something went wrong when logging in...");
         }
 
         return Ok(new
